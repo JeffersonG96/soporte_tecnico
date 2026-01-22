@@ -1,0 +1,15 @@
+*.py[cod]
+*.pyo
+*.pyd
+
+venv/
+.env/
+.venv/
+
+.env
+.env.*
+
+*.log
+
+.vscode/
+
