@@ -3,9 +3,9 @@ from soporte_tecnico.config import *
 
 def main():
 
-    loadder = SetupRAG(docs_path=DOCS_PATH, chroma_path=CHROMA_PATH)
+    setup_rag = SetupRAG(docs_path=DOCS_PATH, chroma_path=CHROMA_PATH)
 
-    print(len(loadder.load_documents()))
+    setup_rag.setup_rag(force_rebuild=True)
 
 
 if __name__ == "__main__":
