@@ -15,8 +15,8 @@ class SetupRAG:
         self.chroma_path = Path(chroma_path)
         self.embedding = OpenAIEmbeddings(model=MODEL_EMBEDDING)
         self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size = 1000,
-            chunk_overlap = 100
+            chunk_size = 360,
+            chunk_overlap = 60
         )
 
     

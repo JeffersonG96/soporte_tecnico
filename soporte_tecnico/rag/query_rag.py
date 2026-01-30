@@ -2,6 +2,9 @@ from pathlib import Path
 from typing import Any
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.documents import Document
+
 
 from soporte_tecnico.config import *
 
@@ -10,7 +13,7 @@ class QueryRAG():
     def __init__(self, chroma_path: str = './chroma_db'):
         self.chroma_path = Path(chroma_path)
         self.embedding = OpenAIEmbeddings(model=MODEL_EMBEDDING)
-        self.llm = ChatOpenAI(model=MODEL_LLM)
+        self.llm = ChatOpenAI(model=MODEL_LLM, temperature=0.1)
         self.vectorstore = None
         self.retriever = None
 
@@ -30,39 +33,115 @@ class QueryRAG():
         )
 
         self.retriever = self.vectorstore.as_retriever(
-            search_type = "mmr",
-            kwargs = {'k':5, 'fetch_k':20,'lambda_mult':0.75}
+            search_type = "similarity",
+            kwargs = {'k':6}
         )
 
         print("Cargado correctamente vectorstore")
 
-    def buscar(self, consulta: str) -> dict[str, Any]:
+    async def buscar(self, consulta: str) -> dict[str, Any]:
         """Generar consulta al llm con datos del reitriever"""
 
         if not self.retriever:
             return {
                 "respuesta": "El sistem RAG no esta diponible",
                 "filename": [],
-                "page":[]
+                "page":[],
+                "score_rag": []
             }
         
-        documents = self.retriever.invoke(consulta)
+        documents = await self.retriever.ainvoke(consulta)
 
         if not documents:
             return {
                 "respuesta": "No existen documentos relevantes sobre esta consulta",
                 "filename": [],
-                "page":[]
+                "page":[],
+                "score_rag": []
             }
-        
+        self._update_score_vectorstore(consulta, documents)
         #Extraer contexto y metadata
-
         contexto_partes = []
         filenames = []
         pages = []
+        scores = []
 
-        for doc in documents:
-            doc.page_content
+        for i, doc in enumerate(documents):
+            contexto = doc.page_content.strip()
+            if contexto:
+                contexto_partes.append(contexto)
+
+                #Extrear nombre de archivos
+                filename = doc.metadata.get('filename')
+                if filename:
+                    filenames.append(filename)
+                
+                page = doc.metadata.get('page_label')
+                if page:
+                    pages.append(page)
+                score = doc.metadata.get('score')
+                print(score)
+                if score:
+                    scores.append(score)
+                
+            if not contexto:
+                return {
+                    "respuesta": "No existe page_content en los documentos",
+                    "filename": filename,
+                    "page": page,
+                    "score_rag":[]
+                }
+        
+        contexto_unido = "\n\n".join(contexto_partes)
+        respuesta = await self._generar_respuesta(consulta, contexto_unido)
+
+        return {
+            "respuesta": respuesta,
+            "filename": set(filenames),
+            "page": set(pages),
+            "score_rag": scores
+        } 
+    
+    def _update_score_vectorstore(self, consulta: str, docs: Document,):
+        scored = self.vectorstore.similarity_search_with_score(query=consulta, k=6) if self.vectorstore else []
+        scores = [float(s) for _, s in scored]
+
+        score_map = {}
+        for d, s in scored:
+            key = (d.metadata.get("source"), d.metadata.get("page"), d.metadata.get("chunk_id"))
+            score_map[key] = float(s)
+
+        for d in docs:
+            key = (d.metadata.get("source"), d.metadata.get("page"), d.metadata.get("chunk_id"))
+            if key in score_map:
+                d.metadata["score"] = score_map[key]
+
+    async def _generar_respuesta(self, consulta: str, contexto: str) -> str:
+        """Generar respuesta con LLM"""
+        prompt = ChatPromptTemplate.from_template(
+        f"""
+        Eres un experto en RETREIVER  que generar una respuesta coherente con la base de de conocimiento.
+        Instrucciones:
+        - Genera una respuesta útil.
+        - Si no ha contexto suficiente, dilo claramente
+        - No inventes información que no esta en el contexto
+        - Si el contexto no tiene sentido con la pregunta, dilo claramente
+
+        Contexto de la base de conocimientos: {contexto}
+
+        Pregunta del usuario: {consulta}                                                          
+        """)
+
+        try:
+            respuesta = self.llm.invoke(prompt.format(consulta=consulta, contexto=contexto))
+            return respuesta.content.strip()
+        except Exception as e:
+            return "LLM no disponible, no se puede procesar la consulta con el contexto"
+             
+
+
+
+
 
 
         

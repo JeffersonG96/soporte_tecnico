@@ -10,4 +10,4 @@ if os.getenv("OPENAI_API_KEY"):
 CHROMA_PATH="D:\\Cursos\\Agentes\\soporte_tecnico\\soporte_tecnico\\data\\chroma_db"
 DOCS_PATH = "D:\\Cursos\\Agentes\\soporte_tecnico\\soporte_tecnico\\data\\docs"
 MODEL_EMBEDDING = "text-embedding-3-large"
-MODEL_LLM = "4o-gpt-mini"
+MODEL_LLM = "gpt-4o-mini"
