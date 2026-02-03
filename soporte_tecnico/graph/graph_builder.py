@@ -13,6 +13,9 @@ class GraphBuilder():
         self.rag = QueryRAG(chroma_path=CHROMA_PATH)
     
     # *Nodos para graph
+    def normaze_node(self):
+
+        self.llm.with_structured_output
     def clasificar_intencion(self, state: RagState) ->dict[str, Any]:
         """Clasifica la inención del usuario"""
         consulta = state.get('consulta')

@@ -47,7 +47,6 @@ class QueryRAG():
                 "respuesta": "El sistem RAG no esta diponible",
                 "filename": [],
                 "page":[],
-                "score_rag": []
             }
         
         documents = await self.retriever.ainvoke(consulta)
@@ -57,9 +56,8 @@ class QueryRAG():
                 "respuesta": "No existen documentos relevantes sobre esta consulta",
                 "filename": [],
                 "page":[],
-                "score_rag": []
             }
-        self._update_score_vectorstore(consulta, documents)
+        # self._update_score_vectorstore(consulta, documents)
         #Extraer contexto y metadata
         contexto_partes = []
         filenames = []
@@ -79,17 +77,12 @@ class QueryRAG():
                 page = doc.metadata.get('page_label')
                 if page:
                     pages.append(page)
-                score = doc.metadata.get('score')
-                print(score)
-                if score:
-                    scores.append(score)
                 
             if not contexto:
                 return {
                     "respuesta": "No existe page_content en los documentos",
                     "filename": filename,
                     "page": page,
-                    "score_rag":[]
                 }
         
         contexto_unido = "\n\n".join(contexto_partes)
@@ -99,22 +92,8 @@ class QueryRAG():
             "respuesta": respuesta,
             "filename": set(filenames),
             "page": set(pages),
-            "score_rag": scores
         } 
     
-    def _update_score_vectorstore(self, consulta: str, docs: Document,):
-        scored = self.vectorstore.similarity_search_with_score(query=consulta, k=6) if self.vectorstore else []
-        scores = [float(s) for _, s in scored]
-
-        score_map = {}
-        for d, s in scored:
-            key = (d.metadata.get("source"), d.metadata.get("page"), d.metadata.get("chunk_id"))
-            score_map[key] = float(s)
-
-        for d in docs:
-            key = (d.metadata.get("source"), d.metadata.get("page"), d.metadata.get("chunk_id"))
-            if key in score_map:
-                d.metadata["score"] = score_map[key]
 
     async def _generar_respuesta(self, consulta: str, contexto: str) -> str:
         """Generar respuesta con LLM"""
@@ -138,6 +117,13 @@ class QueryRAG():
         except Exception as e:
             return "LLM no disponible, no se puede procesar la consulta con el contexto"
              
+    def get_score_vectorstore(self, consulta: str) -> list[float]:
+        
+        scored = self.vectorstore.similarity_search_with_score(query=consulta, k=6) if self.vectorstore else []
+        scores = [float(s) for _, s in scored]
+
+        return scores
+
 
 
 
