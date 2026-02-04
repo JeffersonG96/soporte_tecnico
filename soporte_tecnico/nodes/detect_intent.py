@@ -51,47 +51,46 @@ INTENT_PROMPT = ChatPromptTemplate.from_messages([
     ("human","{text}"),
 ])
 
-async def detect_intent_node(state: MyState, llm, min_confidence: float = 0.60) -> dict:
-    """
-    Nodo LangGraph: detecta intención usando structured output.
-
-    Requiere: state['messages'] con al menos un HumanMessage
-
+class DetectIntent:
+    """ Nodo LangGraph: detecta intención usando structured output. Requiere: state['messages'] con al menos un HumanMessage 
     Escribe: 
-    - intent, intent_confidence, missing_fields, debug.intent (resultado completo)
-    """
-    
-    text = state.get("user_query") or _last_user_msg(state)
-    state["user_query"] = text
+    - intent, intent_confidence, missing_fields, debug.intent (resultado completo)"""
+        
+    def __init__(self, llm, *, min_confidence: float = 0.60, prompt = INTENT_PROMPT):
+        self.min_confidence = min_confidence
+        self.classifier = prompt | llm.with_structured_output(IntentResult)
+        
+    async def __call__(self, state: MyState) -> MyState:      
+        text = state.get("user_query") or _last_user_msg(state)
+        state["user_query"] = text
 
-    #Clasificar con salida estructurada 
-    classifier = INTENT_PROMPT | llm.with_structured_output(IntentResult)
+        #Clasificar con salida estructurada 
 
-    try:
-        result: IntentResult  = await classifier.ainvoke({"text": text})
-    except Exception as e:
-        print(f"ERROR {e}")
-        state["intent"] = "desconocido"
-        state["intent_confidence"] = 0.0
-        state["missing_fields"] = ["detalle_pregunta"]
+        try:
+            result: IntentResult  = await self.classifier.ainvoke({"text": text})
+        except Exception as e:
+            print(f"ERROR {e}")
+            state["intent"] = "desconocido"
+            state["intent_confidence"] = 0.0
+            state["missing_fields"] = ["detalle_pregunta"]
+            state.setdefault("debug", {})
+            state["debug"]["intent"] = {"error": str(e), "input": text[:400]}
+            return state
+        
+        intent = result.intent
+        conf = float(result.confidence)
+
+        if conf < self.min_confidence:
+            intent = "desconocido"
+        
+        state["intent"] = intent
+        state["intent_confidence"] = conf
+        state["missing_fields"] = result.missing_fields[:6]
+
         state.setdefault("debug", {})
-        state["debug"]["intent"] = {"error": str(e), "input": text[:400]}
+        state["debug"]["intent"] = result.model_dump()
+        
         return state
-    
-    intent = result.intent
-    conf = float(result.confidence)
-
-    if conf < min_confidence:
-        intent = "desconocido"
-    
-    state["intent"] = intent
-    state["intent_confidence"] = conf
-    state["missing_fields"] = result.missing_fields[:6]
-
-    state.setdefault("debug", {})
-    state["debug"]["intent"] = result.model_dump()
-    
-    return state
 
 
 
