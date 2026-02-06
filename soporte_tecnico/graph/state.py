@@ -10,10 +10,11 @@ class MyState(TypedDict):
     missing_fields: list[str]
     user_query: str
     debug: dict[str, Any] = {}
+    best_score: float
+    scores_rag: list
 
     respuesta: str
     categoria: str | None
-    best_score: list
     requiere_clasificacion: bool
     fuentes: Optional[list]
     page: Optional[list]

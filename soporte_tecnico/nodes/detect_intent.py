@@ -68,6 +68,7 @@ class DetectIntent:
 
         try:
             result: IntentResult  = await self.classifier.ainvoke({"text": text})
+            print(result)
         except Exception as e:
             print(f"ERROR {e}")
             state["intent"] = "desconocido"

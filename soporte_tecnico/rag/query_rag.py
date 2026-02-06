@@ -4,6 +4,8 @@ from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.documents import Document
+from soporte_tecnico.graph.state import MyState
+from langchain_core.messages import HumanMessage
 
 
 from soporte_tecnico.config import *
@@ -117,12 +119,19 @@ class QueryRAG():
         except Exception as e:
             return "LLM no disponible, no se puede procesar la consulta con el contexto"
              
-    def get_score_vectorstore(self, consulta: str) -> list[float]:
+    def get_score_vectorstore(self, state: MyState) -> MyState:
         
+        consulta = next(
+            m.content for m in reversed(state["messages"])
+            if isinstance(m, HumanMessage)
+        )
+
         scored = self.vectorstore.similarity_search_with_score(query=consulta, k=6) if self.vectorstore else []
         scores = [float(s) for _, s in scored]
+        state['best_score'] = min(scores)
+        state['scores_rag'] = scores
 
-        return scores
+        return state
 
 
 

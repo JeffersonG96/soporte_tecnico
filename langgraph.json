@@ -1,7 +1,7 @@
 {
   "dependencies": ["."],
   "graphs": {
-    "llm": "./app/llm.py:graph"
+    "soporte": "./soporte_tecnico/graph/graph_builder.py:graph"
   },
   "python_version": "3.11",
   "env": ".env"
