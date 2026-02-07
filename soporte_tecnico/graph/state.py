@@ -12,8 +12,8 @@ class MyState(TypedDict):
     debug: dict[str, Any] = {}
     best_score: float
     scores_rag: list
-
     respuesta: str
+    
     categoria: str | None
     requiere_clasificacion: bool
     fuentes: Optional[list]

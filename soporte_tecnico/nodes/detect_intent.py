@@ -61,14 +61,14 @@ class DetectIntent:
         self.classifier = prompt | llm.with_structured_output(IntentResult)
         
     async def __call__(self, state: MyState) -> MyState:      
-        text = state.get("user_query") or _last_user_msg(state)
+        # text = state.get("user_query") or _last_user_msg(state)
+        text = _last_user_msg(state)
         state["user_query"] = text
 
         #Clasificar con salida estructurada 
 
         try:
             result: IntentResult  = await self.classifier.ainvoke({"text": text})
-            print(result)
         except Exception as e:
             print(f"ERROR {e}")
             state["intent"] = "desconocido"

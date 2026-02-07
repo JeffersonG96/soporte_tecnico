@@ -20,7 +20,7 @@ class PolicyRouter:
         if intent == "consulta_documentacion":
                 return "rag_node" if evidence else "clarify_node"
             
-        if intent in ("diagnostico]_soporte", "procedimiento_configuracion"):
+        if intent in ("diagnostico_soporte", "procedimiento_configuracion"):
                 return "support_node"
             
         if intent in ("saludo", "conversacion_general"):
