@@ -5,12 +5,12 @@ from soporte_tecnico.config import *
 async def main():
     consulta  = QueryRAG(chroma_path=CHROMA_PATH)
 
-    # resultado = await consulta.buscar(consulta="define python")
-    resultado = consulta.get_score_vectorstore("Que son los tokens de openai")
+    resultado = await consulta.buscar(consulta="Cuales son los pasos para instalar las camaras de conteo")
+    # resultado = consulta.get_score_vectorstore("Que son los tokens de openai")
     # resultado = consulta.test("que es python")
     # resultado = consulta.retriever.invoke("Como cuentos tokens ?")
 
-    print(min(resultado))
+    print(resultado)
     # print(f"\n\n {len(resultado)}")
 
 if __name__ == "__main__":

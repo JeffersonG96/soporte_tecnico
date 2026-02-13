@@ -59,7 +59,6 @@ class QueryRAG():
                 "filename": [],
                 "page":[],
             }
-        # self._update_score_vectorstore(consulta, documents)
         #Extraer contexto y metadata
         contexto_partes = []
         filenames = []
@@ -89,7 +88,6 @@ class QueryRAG():
         
         contexto_unido = "\n\n".join(contexto_partes)
         respuesta = await self._generar_respuesta(consulta, contexto_unido)
-
         return {
             "respuesta": respuesta,
             "filename": set(filenames),

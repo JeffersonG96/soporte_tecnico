@@ -73,7 +73,7 @@ class DetectIntent:
             print(f"ERROR {e}")
             state["intent"] = "desconocido"
             state["intent_confidence"] = 0.0
-            state["missing_fields"] = ["detalle_pregunta"]
+            state["missing_fields"] = ["modelo","apn","operador"] #! para mejorar la determinacion del sistema 
             state.setdefault("debug", {})
             state["debug"]["intent"] = {"error": str(e), "input": text[:400]}
             return state

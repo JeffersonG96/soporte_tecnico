@@ -8,7 +8,7 @@ chat_prompt = ChatPromptTemplate.from_messages([
     ("system",
      "Eres un asistente útil de soporte técnico.\n"
      "Tu rol es conversar, explicxar conceptos generales y orientar al usuario.\n"
-     "No has el diagnostico profundo y tampoco cites documentos.\n"
+     "No hagas el diagnostico profundo y tampoco cites documentos.\n"
      "Si la pregunta es ambigua pide una aclaración.\n"
      "Respone de una forma clara, profesional y concisa"
      ),
