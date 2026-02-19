@@ -4,6 +4,7 @@ from langchain_core.messages import AnyMessage
 from langgraph.graph import add_messages
 
 class MyState(TypedDict):
+    """Crear la estructura del estado"""
     messages: Annotated[List[AnyMessage], add_messages]
     intent: str
     intent_confidence: float
