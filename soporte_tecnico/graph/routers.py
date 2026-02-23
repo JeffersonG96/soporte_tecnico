@@ -9,14 +9,23 @@ class PolicyRouter:
         intent = state.get('intent', 'desconocido')
         best_score = state.get('best_score')
         scores = state.get('scores_rag', [])
+        missing = state.get("missing_fields", [])
 
         ok_rag = best_score <= 0.65
         good_docs = sum(1 for s in scores if s <= self.rag_thresshold)
         evidence = ok_rag and good_docs >= self.min_good_docs
 
         state.setdefault("debug", {})
-        state["debug"]["policy"] = {"intent": intent, "best_score": best_score, "good_docs": good_docs, "evidence": evidence}
+        state["debug"]["policy"] = {"intent": intent, "best_score": best_score, "good_docs": good_docs, "evidence": evidence, "missing_fields":  missing}
 
+        #si falta datos obligatorios 
+        if missing:
+              attempts = state.get("clarify_attempts", 0)
+              if attempts >= 2:
+                    return "support_node"
+              return "clarify_node"
+
+        #Documentación 
         if intent == "consulta_documentacion":
                 return "rag_node" if evidence else "clarify_node"
             

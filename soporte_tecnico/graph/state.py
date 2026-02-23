@@ -1,4 +1,5 @@
-from typing import Annotated, List, Any, Optional, TypedDict
+from typing import Annotated, List, Any, Optional
+from typing_extensions import TypedDict
 from operator import add
 from langchain_core.messages import AnyMessage
 from langgraph.graph import add_messages
@@ -14,6 +15,10 @@ class MyState(TypedDict):
     best_score: float
     scores_rag: list
     respuesta: str
+
+    slots: dict[str, List[str]]
+    updates: list[str]
+    clarify_attempts: int
     
     categoria: str | None
     requiere_clasificacion: bool
