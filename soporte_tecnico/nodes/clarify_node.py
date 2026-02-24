@@ -14,9 +14,48 @@ FIELD_QUESTIONS: dict[str, str] = {
 }
 
 
+PRIORITY_BY_INTENT: dict[str, list[str]] = {
+    "diagnostico_soporte": ["modelo_equipo", "sintoma", "operador", "apn"],
+    "procedimiento_configuracion": ["modelo_equipo", "objetivo_config", "parametros_conocidos"],
+    "consulta_documentacion": ["producto", "tema"],
+}
 
 
-def clarify_node(state: MyState):
+class ClarifyNode:
+    """Si faltan campos mínimos (missing_fields), genera una pregunta, 
+    esta sale por state["clarify]"""
 
-    state['respuesta'] ="Ejecutando clarify_node"
-    return state
+    def __init__(self):
+        pass
+
+    async def __call__(self, state: MyState) -> MyState:
+        intent = state.get("intent", "desconocido")
+        slots = state.get("slots", {}) or {}
+        missing = state.get("missing_fields", []) or []
+
+        if intent == "desconocido":
+            state["clarify"] = {
+                "field": "intent_desambiguation",
+                "question": (
+                    "Para ayudarte de mejor manera dime qué necesitas:\n"
+                    "1. Diagnostico de un problema\n"
+                    "2. Configuración o procedimiento\n"
+                    "3. Consultar documentacion"
+                )
+            }
+
+            return state
+        
+        #si no hay missing no preguntar nada 
+        if not missing:
+            state["clarify"] = {}
+            return state
+        
+        #Preguntar con prioridad segun la intención 
+        priority = PRIORITY_BY_INTENT.get(intent, [])
+        next_field = None
+
+        
+
+
+

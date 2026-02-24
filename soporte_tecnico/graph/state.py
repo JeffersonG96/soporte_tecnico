@@ -18,6 +18,7 @@ class MyState(TypedDict):
 
     slots: dict[str, List[str]]
     updates: list[str]
+    clarify: dict[str, Any]
     clarify_attempts: int
     
     categoria: str | None

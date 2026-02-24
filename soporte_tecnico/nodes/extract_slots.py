@@ -17,7 +17,7 @@ Intent = Literal[
 #Catálogo de slots
 SLOT_CATALOG: dict[Intent, list[str]] = {
     "diagnostico_soporte": ["modelo_equipo", "sintoma", "operador", "apn"],
-    "procedimeinto_configuracion": ["modelo_equipo", "objetivo_config", "parametros_conocidos"],
+    "procedimiento_configuracion": ["modelo_equipo", "objetivo_config", "parametros_conocidos"],
     "consulta_documentacion": ["producto", "tema"],
     "conversacion_general": [],
     "saludo": [],
@@ -26,9 +26,9 @@ SLOT_CATALOG: dict[Intent, list[str]] = {
 
 #Campos mínimos por intención 
 REQUIRED_BY_INTENT: dict[Intent, list[str]] = {
-    "diagnostico_soporte": ["modelo_quipo", "sintoma"],
+    "diagnostico_soporte": ["modelo_equipo", "sintoma", "operador"],
     "procedimeinto_configuracion": ["modelo_equipo", "objetivo_config"],
-    "consulta_documentacion": [],
+    "consulta_documentacion": ["producto","tema"],
     "conversacion_general": [],
     "saludo": [],
     "desconocido": []
@@ -45,7 +45,7 @@ class SlotExtraction(BaseModel):
     producto: Optional[str] = None
     tema: Optional[str] = None
 
-    update: list[str] = Field(default_factory=list, description= "Lista de  slots que se actualizan")
+    updates: list[str] = Field(default_factory=list, description= "Lista de  slots que se actualizan")
     confidence: float = Field(ge=0.0, le=1.0, default=0.7)
     
 SLOT_PROMPT = ChatPromptTemplate.from_messages([
@@ -70,7 +70,7 @@ def _merge_slots(existing: dict, extracted: SlotExtraction, allowed: list[str]) 
     updated = dict(existing or {})
     extracted_dict = extracted.model_dump()
 
-    # Solo considera slots permitidos y no-vacíos
+    # Solo considera slots permitidos y no vacíos
     for k in allowed:
         val = extracted_dict.get(k)
         if val is not None:
@@ -122,7 +122,7 @@ class ExtractSlotsNode:
             "intent": intent,
             "allowed_slots": allowed_slots,
             "required_slots": required_slots,
-            "updates": result.update,
+            "updates": result.updates,
             "confidence": float(result.confidence),
             "extracted_raw": result.model_dump(),
             "merged_slots": merged,
